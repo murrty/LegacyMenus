@@ -13,6 +13,8 @@ using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows.Forms.Natives;
+using static System.Windows.Forms.Natives.NativeMethods;
+
 /// <summary>Represents an individual item that is displayed within a <see cref="T:System.Windows.Forms.MainMenu" /> or <see cref="T:System.Windows.Forms.ContextMenu" />. Although <see cref="T:System.Windows.Forms.ToolStripMenuItem" /> replaces and adds functionality to the <see cref="T:System.Windows.Forms.MenuItem" /> control of previous versions, <see cref="T:System.Windows.Forms.MenuItem" /> is retained for both backward compatibility and future use if you choose.</summary>
 [ToolboxItem(false)]
 [DesignTimeVisible(false)]
@@ -826,15 +828,7 @@ public class MenuItem : Menu {
             NativeMethods.MENUITEMINFO_T mENUITEMINFO_T = CreateMenuItemInfo();
             HandleRef menuHandle = new(menu, menu.handle);
             UnsafeNativeMethods.InsertMenuItem(menuHandle, -1, fByPosition: true, mENUITEMINFO_T);
-
-            // weird way to set the image, but it doesn't work in CreateMenuItemInfo.
-            if (hbmap != IntPtr.Zero || bitmapType != MenuItemBitmapType.UserDefined) {
-                mENUITEMINFO_T.fMask = 0x0080;
-                mENUITEMINFO_T.hbmpChecked = 0;
-                mENUITEMINFO_T.hbmpUnchecked = 0;
-                mENUITEMINFO_T.hbmpItem = GetBmpPtr();
-                UnsafeNativeMethods.SetMenuItemInfo(menuHandle, this.Index, true, mENUITEMINFO_T);
-            }
+            SetImagOnMenuItemInfo(ref mENUITEMINFO_T, menuHandle);
 
             hasHandle = mENUITEMINFO_T.hSubMenu != IntPtr.Zero;
             dataVersion = data.version;
@@ -1239,7 +1233,10 @@ public class MenuItem : Menu {
             return;
         }
         NativeMethods.MENUITEMINFO_T mENUITEMINFO_T = CreateMenuItemInfo();
-        UnsafeNativeMethods.SetMenuItemInfo(new HandleRef(menu, menu.handle), MenuID, fByPosition: false, mENUITEMINFO_T);
+        HandleRef menuHandle = new HandleRef(menu, menu.handle);
+        UnsafeNativeMethods.SetMenuItemInfo(menuHandle, MenuID, fByPosition: false, mENUITEMINFO_T);
+        SetImagOnMenuItemInfo(ref mENUITEMINFO_T, menuHandle);
+
         if (hasHandle && mENUITEMINFO_T.hSubMenu == IntPtr.Zero) {
             ClearHandles();
         }
@@ -1293,6 +1290,17 @@ public class MenuItem : Menu {
             Marshal.StructureToPtr((object)mEASUREITEMSTRUCT, m.LParam, fDeleteOld: false);
         }
         m.Result = (IntPtr)1;
+    }
+
+    private void SetImagOnMenuItemInfo(ref NativeMethods.MENUITEMINFO_T mENUITEMINFO_T, HandleRef menuHandle) {
+        // weird way to set the image, but it doesn't work in CreateMenuItemInfo.
+        if (hbmap != IntPtr.Zero || bitmapType != MenuItemBitmapType.UserDefined) {
+            mENUITEMINFO_T.fMask = 0x0080;
+            mENUITEMINFO_T.hbmpChecked = 0;
+            mENUITEMINFO_T.hbmpUnchecked = 0;
+            mENUITEMINFO_T.hbmpItem = GetBmpPtr();
+            UnsafeNativeMethods.SetMenuItemInfo(menuHandle, this.Index, true, mENUITEMINFO_T);
+        }
     }
 
     private void SetImage() {
