@@ -828,7 +828,7 @@ public class MenuItem : Menu {
             UnsafeNativeMethods.InsertMenuItem(menuHandle, -1, fByPosition: true, mENUITEMINFO_T);
 
             // weird way to set the image, but it doesn't work in CreateMenuItemInfo.
-            if (hbmap != IntPtr.Zero) {
+            if (hbmap != IntPtr.Zero || bitmapType != MenuItemBitmapType.UserDefined) {
                 mENUITEMINFO_T.fMask = 0x0080;
                 mENUITEMINFO_T.hbmpChecked = 0;
                 mENUITEMINFO_T.hbmpUnchecked = 0;
