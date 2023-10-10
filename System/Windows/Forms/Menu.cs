@@ -728,6 +728,13 @@ public abstract class Menu : Component {
         if ((uint)change <= 1u) {
             DestroyMenuItems();
         }
+        else if ((uint)change == 4u) {
+            DestroyMenuItems();
+            CreateMenuItems();
+            foreach (MenuItem item in MenuItems) {
+                item.UpdateMenuItem(true);
+            }
+        }
     }
 
     private IntPtr MatchKeyToMenuItem(int startItem, char key, MenuItemKeyComparer comparer) {

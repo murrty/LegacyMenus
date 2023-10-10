@@ -110,7 +110,7 @@ public class MenuItem : Menu {
             set {
                 if ((state & 0x10000) == 0 != value) {
                     state = (value ? (state & -65537) : (state | 0x10000));
-                    ItemsChanged(1);
+                    ItemsChanged(4);
                 }
             }
         }
